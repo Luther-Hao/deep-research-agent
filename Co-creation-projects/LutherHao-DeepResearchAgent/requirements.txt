@@ -1,0 +1,2 @@
+langgraph~=1.0.8
+langsmith~=0.6.9
