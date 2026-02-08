@@ -27,3 +27,18 @@ class ModelName(Enum):
     def get_config_value(self, name: str):
         return self.config.get(name, "")
 
+    @classmethod
+    def from_name(cls, name: str):
+        """根据模型名称字符串获取枚举模型实例"""
+        if not name or not name.strip():
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"{cls.__name__}: invalid model name: {name},use DEEPSEEK_CHAT")
+            return cls.DEEPSEEK_CHAT
+
+        for model in cls:
+            if model.model_name.lower() == name.lower():
+                return model
+
+        raise ValueError(f"invalid model name: {name}")
+

@@ -41,6 +41,22 @@ class LLMManager:
         logging.debug(f"最终模型配置：{total_config}")
         return BaseChatOpenAI(**total_config)
 
+    def get_model_by_name(self, model_name: str, **kwargs) -> BaseChatOpenAI:
+        try:
+            model_enum = ModelName.from_name(model_name)
+            return self.get_model(model_enum, **kwargs)
+        except ValueError:
+            return self.get_model(ModelName.DEEPSEEK_CHAT,**kwargs)
+
+
+
+    def get_model(self, model_enum: ModelName, **kwargs) -> BaseChatOpenAI:
+        """获取模型实例,利用缓存提高性能"""
+        model_key = model_enum.model_name
+        # TODO 多模型配置不同api key优化
+        api_key = self._global_config.get("api_key")
+
+
 
 llm_manager = LLMManager()
 

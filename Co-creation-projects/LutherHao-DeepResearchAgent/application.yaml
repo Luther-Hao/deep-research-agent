@@ -1,3 +1,3 @@
 GLOBAL_LLM_API_KEY:
   base_url: "https://api.deepseek.com/v1"
-  api_key: "sk-40f47506cf4e4df29a2a5f5ff3f5f373"
+  api_key: ""
