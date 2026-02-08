@@ -4,13 +4,15 @@ from typing import Dict, Any
 
 class ModelName(Enum):
     """基于OpenAI API的模型实例管理"""
-    DEEPSEEK_V3 = {
-        "name":"deepseek-v3",
+    DEEPSEEK_CHAT = {
+        "name":"deepseek-chat",
         "config":{
             "timeout": 60,
-            "max_retry": 3
+            "max_retries": 3
         }
     }
+
+
 
     @property
     def model_name(self) -> str:
