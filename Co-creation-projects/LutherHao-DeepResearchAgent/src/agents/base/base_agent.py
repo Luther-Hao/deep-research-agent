@@ -8,7 +8,7 @@ from langgraph.graph.state import CompiledStateGraph
 from langsmith.schemas import Prompt
 
 from src.agents.model.agent_info import AgentInfo
-from src.agents.tool.tool_manager import ToolManager
+from src.agents.tool.tool_manager import ToolManager, CompositeToolManager, MCPToolManager, DefaultToolManager
 
 from src.agents.llms.llm_manager import llm_manager as model_manager
 
@@ -17,17 +17,24 @@ class AgentType(Enum):
     SIMPLE_REACT = "simple_react"
 
 
+def _create_default_tool_manager()-> ToolManager:
+    tool_manager = CompositeToolManager()
+    tool_manager.add_manager(MCPToolManager())
+    tool_manager.add_manager(DefaultToolManager())
+    pass
+
+
 class BaseAgent(ABC):
     """
     基于LangGraph的Agent基类
     """
-    def __init__(self,
-                 checkpointer:Optional[BaseCheckpointSaver] = None,
-                 tool_manager:Optional[ToolManager] = None):
-        self._checkpointer = checkpointer
-        self._tool_manager = tool_manager
-        self._compiled_graph:Optional[CompiledStateGraph] = None
 
+    def __init__(self,
+                 checkpointer: [BaseCheckpointSaver] = None,
+                 tool_manager: Optional[ToolManager] = None):
+        self.checkpointer = checkpointer
+        self.tool_manager = tool_manager or _create_default_tool_manager()
+        self._compiled_graph: Optional[CompiledStateGraph] = None
 
     @classmethod
     @abstractmethod
@@ -43,7 +50,7 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    async def build_graph_async(self,config:RunnableConfig) -> CompiledStateGraph:
+    async def build_graph_async(self, config: RunnableConfig) -> CompiledStateGraph:
         """异步构建，支持动态工具加载"""
         pass
 
@@ -58,15 +65,13 @@ class BaseAgent(ABC):
         """异步获取编译后的图"""
         return await self.build_graph_async(config)
 
-
     def get_compiled_graph(self) -> CompiledStateGraph:
         """获取编译后的图像，单例模式"""
         if self._compiled_graph is None:
             self._compiled_graph = self.build_graph()
         return self._compiled_graph
 
-
-    def invoke(self, input: Dict[str, str], config: Dict[str, Any] = None) -> Dict[str,Any]:
+    def invoke(self, input: Dict[str, str], config: Dict[str, Any] = None) -> Dict[str, Any]:
         """同步调用Agent"""
         graph = self.get_compiled_graph()
         return graph.invoke(input, config)
@@ -76,8 +81,7 @@ class BaseAgent(ABC):
         graph = self.get_compiled_graph()
         return graph.stream(input, config)
 
-
-    async def ainvoke(self, input: Dict[str, str], config: Dict[str, Any] = None) -> Dict[str,Any]:
+    async def ainvoke(self, input: Dict[str, str], config: Dict[str, Any] = None) -> Dict[str, Any]:
         """异步调用"""
         graph = await self.get_compiled_graph_async(config)
         return await graph.ainvoke(input, config)
@@ -88,25 +92,25 @@ class BaseAgent(ABC):
         return await graph.astream(input, config)
 
 
-
 class SimpleAgent(BaseAgent):
     """简单的ReAct Agent基类"""
+
     def __init__(self,
                  id: int,
                  agent_name: str,
                  tools: List,
                  model_name: str = "default",
                  system_prompt_template: Optional[Prompt] = None,
-                 checkpointer:Optional[BaseCheckpointSaver] = None,
-                 tool_manager:Optional[ToolManager] = None):
+                 checkpointer: Optional[BaseCheckpointSaver] = None,
+                 tool_manager: Optional[ToolManager] = None):
         super().__init__(checkpointer, tool_manager)
         self.id = id
         self.agent_name = agent_name
         self.model_name = model_name
         self.static_tools = tools or []
-        self.system_prompt_template:Optional[Prompt] = system_prompt_template
+        self.system_prompt_template: Optional[Prompt] = system_prompt_template
 
-    def getId(self)-> int:
+    def getId(self) -> int:
         return self.id
 
     def get_info(self) -> AgentInfo:
@@ -126,3 +130,18 @@ class SimpleAgent(BaseAgent):
                                    prompt=self.system_prompt_template,
                                    checkpointer=self.checkpointer)
         return graph
+
+    async def build_graph_async(self, config: RunnableConfig = None) -> CompiledStateGraph:
+        """异步构建简单ReAct Agent图"""
+        from langgraph.prebuilt import create_react_agent
+        model = model_manager.get_model_by_name(self.model_name)
+
+        all_tools = self.static_tools.copy()
+        dynamic_tools = await self.get_dynamic_tools(config)
+        all_tools.extend(dynamic_tools)
+
+        return create_react_agent(name=self.agent_name,
+                                  model=model,
+                                  tools=all_tools,
+                                  prompt=self.system_prompt_template,
+                                  checkpointer=self.checkpointer)
