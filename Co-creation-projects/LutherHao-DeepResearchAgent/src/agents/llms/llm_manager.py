@@ -8,7 +8,8 @@ from src.agents.llms.model_name import ModelName
 from src.infrastructure.config.config_loader import ConfigLoader
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
 
 def _get_global_config() -> Dict[str, Any]:
     """获取全局配置（base_url api_key）"""
@@ -25,6 +26,7 @@ class LLMManager:
     """OpenAI兼容的模型管理器,使用BaseChatOpenAI创建模型实例"""
     def __init__(self):
         self._global_config = _get_global_config()
+        self._model_cache: Dict[str, BaseChatOpenAI] = {}
 
     def _create_model_instance(self, model_name: Optional[ModelName],**kwargs) -> BaseChatOpenAI:
         """根据模型名称创建对应的模型实例，使用BaseChatOpenAI"""
@@ -53,8 +55,16 @@ class LLMManager:
     def get_model(self, model_enum: ModelName, **kwargs) -> BaseChatOpenAI:
         """获取模型实例,利用缓存提高性能"""
         model_key = model_enum.model_name
-        # TODO 多模型配置不同api key优化
-        api_key = self._global_config.get("api_key")
+
+        cache_key = model_key
+
+        if cache_key not in self._model_cache:
+            logger.info(f"Creating model instance for {model_key}")
+            self._model_cache[cache_key] = self._create_model_instance(model_enum,**kwargs)
+
+        return self._model_cache[cache_key]
+
+
 
 
 
