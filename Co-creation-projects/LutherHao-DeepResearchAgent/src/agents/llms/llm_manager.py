@@ -56,6 +56,7 @@ class LLMManager:
         """获取模型实例,利用缓存提高性能"""
         model_key = model_enum.model_name
 
+        # TODO 不同模型传参实例不同，优化缓存键设计
         cache_key = model_key
 
         if cache_key not in self._model_cache:
