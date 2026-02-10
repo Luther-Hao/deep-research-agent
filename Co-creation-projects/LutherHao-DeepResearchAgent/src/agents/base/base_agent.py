@@ -8,7 +8,7 @@ from langgraph.graph.state import CompiledStateGraph
 from langsmith.schemas import Prompt
 
 from src.agents.model.agent_info import AgentInfo
-from src.agents.tool.tool_manager import ToolManager, CompositeToolManager, MCPToolManager, DefaultToolManager
+from src.agents.tool.tool_manager import ToolManager, MCPToolManager, DefaultToolManager
 
 from src.agents.llms.llm_manager import llm_manager as model_manager
 
@@ -16,6 +16,8 @@ from src.agents.llms.llm_manager import llm_manager as model_manager
 class AgentType(Enum):
     SIMPLE_REACT = "simple_react"
 
+class CompositeToolManager():
+    pass
 
 def _create_default_tool_manager()-> ToolManager:
     tool_manager = CompositeToolManager()
@@ -160,3 +162,6 @@ class MultiAgent(BaseAgent):
     def build_graph(self) -> CompiledStateGraph:
         """构建图"""
         return self.build_workflow()
+
+
+
