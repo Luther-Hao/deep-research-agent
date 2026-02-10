@@ -145,3 +145,18 @@ class SimpleAgent(BaseAgent):
                                   tools=all_tools,
                                   prompt=self.system_prompt_template,
                                   checkpointer=self.checkpointer)
+
+
+class MultiAgent(BaseAgent):
+    """工作流Agent基类"""
+    def __init__(self,checkpointer: Optional[BaseCheckpointSaver] = None):
+        super().__init__(checkpointer)
+
+    @abstractmethod
+    def build_workflow(self) -> CompiledStateGraph:
+        """构建工作流图"""
+        pass
+
+    def build_graph(self) -> CompiledStateGraph:
+        """构建图"""
+        return self.build_workflow()
