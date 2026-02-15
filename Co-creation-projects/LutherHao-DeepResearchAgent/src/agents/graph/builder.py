@@ -3,6 +3,10 @@ from langgraph.types import Checkpointer
 
 from src.agents.graph.nodes.model.types import State
 
+from src.agents.graph.nodes.nodes import (
+    coordinator_node,
+    background_investigation_node
+)
 
 def _build_base_graph():
     """
@@ -23,6 +27,7 @@ def _build_base_graph():
 
     # 构建图像
     builder.add_node(coordinator_node)
+    builder.add_node(background_investigation_node)
 
     pass
 

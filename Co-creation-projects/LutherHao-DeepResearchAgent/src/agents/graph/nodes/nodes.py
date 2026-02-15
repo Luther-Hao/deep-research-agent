@@ -9,7 +9,9 @@ from langgraph.types import Command
 from src.agents.graph.nodes.model.types import State
 from src.agents.llms.llm_manager import llm_manager
 from src.agents.prompt.template import apply_prompt_template
+from src.agents.tool.tools.search_tool import LoggedTavilySearch
 from src.infrastructure.config.configuration import Configuration
+from src.infrastructure.config.search_tools_config import SEARCH_ENGINE, SearchEngine
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +40,7 @@ def handoff_to_planner():
     return
 
 
-def coordinate_node(
+def coordinator_node(
         state: State,
         config: RunnableConfig
 )-> Command[Literal["planner", "background_investigation","__end__"]]:
@@ -72,3 +74,20 @@ def coordinate_node(
     return Command(
         goto=goto
     )
+
+
+def background_investigation_node(
+        state: State,
+        config: RunnableConfig
+):
+    logger.info("background_investigation_node is running")
+    configurable = Configuration.from_runnable_config(config)
+    query = state["messages"][-1].content
+
+    if SEARCH_ENGINE == SearchEngine.TAVILY.value:
+        searched_content = LoggedTavilySearch(
+            max_results=configurable.max_search_result,
+        )
+
+
+    return None
