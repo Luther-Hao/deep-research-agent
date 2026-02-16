@@ -1,15 +1,18 @@
 import json
+import os
 
 from typing import Optional, List, Dict, Tuple, Union
 
 import aiohttp
 import requests
+from dotenv import load_dotenv
 from langchain_community.tools import TavilySearchResults
 from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper, TAVILY_API_URL
 from langchain_core.callbacks import CallbackManagerForToolRun
 from langchain_tavily import TavilySearch
 from pydantic import Field
 
+load_dotenv()
 
 class EnhancedTavilySearchWrapper(TavilySearchAPIWrapper):
     def raw_results(
@@ -138,7 +141,9 @@ class MultiTavilySearch(TavilySearchResults):
 
 
 if __name__ == "__main__":
-    pass
+    wrapper = EnhancedTavilySearchWrapper()
+    answer = wrapper.raw_results("what day is it today?",include_images=True)
+    print(json.dumps(answer, indent=2, ensure_ascii=False))
 
 
 
