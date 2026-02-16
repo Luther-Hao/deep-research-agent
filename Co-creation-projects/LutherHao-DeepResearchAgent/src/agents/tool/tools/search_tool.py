@@ -38,6 +38,6 @@ def create_logged_tool(base_tool_class: Type[T]) -> Type[T]:
 
 
 LoggedTavilySearch = create_logged_tool(MultiTavilySearch)
-LoggedDuckDuckGoSearch = create_logged_tool(DuckDuckGoSearch)
-LoggedBraveSearch = create_logged_tool(BraveSearch)
-LoggedArxivSearch = create_logged_tool(ArxivQueryRun)
+# LoggedDuckDuckGoSearch = create_logged_tool(DuckDuckGoSearch)
+# LoggedBraveSearch = create_logged_tool(BraveSearch)
+# LoggedArxivSearch = create_logged_tool(ArxivQueryRun)
