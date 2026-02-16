@@ -1,15 +1,19 @@
 import json
 import logging
+from json import JSONDecodeError
 from typing import Literal
 
+from langchain_core.messages import AIMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from langgraph.types import Command
 
+from src.agents.graph.nodes.model.plan_model import Plan
 from src.agents.graph.nodes.model.types import State
 from src.agents.llms.llm_manager import llm_manager
 from src.agents.prompt.template import apply_prompt_template
 from src.agents.tool.tools.search_tool import LoggedTavilySearch, get_web_search_tool
+from src.agents.utils.json_utils import repair_json_output
 from src.infrastructure.config.configuration import Configuration
 from src.infrastructure.config.search_tools_config import SEARCH_ENGINE, SearchEngine
 
@@ -108,3 +112,77 @@ def background_investigation_node(
             background_investigation_results, ensure_ascii=False
         )
     }
+
+def planner_node(
+        state: State,
+        config: RunnableConfig
+) -> Command[Literal["human_feedback", "research_team","reporter"]]:
+    """生成完整的计划"""
+    logger.info("planner_node is running")
+
+    configurable = Configuration.from_runnable_config(config)
+    plan_iterations = state["plan_iterations"] if state.get("plan_iterations", 0) else 0
+
+    tool_info = _get_available_tools_info_for_prompt(configurable)
+    state_with_tools_info = {**state,"tools_info":tool_info} if tool_info else state
+
+    messages = apply_prompt_template("planner", state_with_tools_info, configurable)
+
+    if (
+        plan_iterations == 0
+        and state.get("enable_background_investigation")
+        and state.get("background_investigation_results")
+    ):
+        messages += [
+            {
+                "role": "user",
+                "content": (
+                   "用户查询的背景调查结果：\n" + state["background_investigation_results"] + "\n"
+                )
+            }
+        ]
+
+    llm = llm_manager.get_model_by_name(configurable.model).with_structured_output(
+        Plan,
+        method="json_mode"
+    )
+
+    if plan_iterations >= configurable.max_plan_iterations:
+        return Command(
+            goto="reporter"
+        )
+
+    full_response = ""
+    response = llm.invoke(messages)
+    full_response = response.model_dump_json(indent=4, exclude_none=True)
+
+    logger.info(f"planner node is done, response is {full_response}")
+
+    try:
+        curr_plan = json.loads(repair_json_output(full_response))
+    except JSONDecodeError as e:
+        logger.error("plan is invalid")
+        if plan_iterations > 0:
+            return Command(
+                goto="reporter"
+            )
+        else:
+            return Command(
+                goto="__end__"
+            )
+
+
+    if curr_plan.get("has_enough_context"):
+        logger.info("This plan is enough")
+        new_plan = Plan.model_validate(curr_plan)
+
+        return Command(
+            update={
+                "message":[AIMessage(content=full_response, name="planner")],
+                "current_plan":new_plan
+            },
+            goto="human_feedback"
+        )
+
+
+
