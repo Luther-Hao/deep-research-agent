@@ -3,3 +3,4 @@ GLOBAL_LLM_API_KEY:
   api_key: ""
 
 SEARCH_ENGINE:
+  api:"tavily_search"
