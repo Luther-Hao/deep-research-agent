@@ -108,6 +108,3 @@ def background_investigation_node(
             background_investigation_results, ensure_ascii=False
         )
     }
-
-
-    return None
