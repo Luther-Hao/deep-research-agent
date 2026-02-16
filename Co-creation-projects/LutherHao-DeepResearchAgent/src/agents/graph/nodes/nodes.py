@@ -9,7 +9,7 @@ from langgraph.types import Command
 from src.agents.graph.nodes.model.types import State
 from src.agents.llms.llm_manager import llm_manager
 from src.agents.prompt.template import apply_prompt_template
-from src.agents.tool.tools.search_tool import LoggedTavilySearch
+from src.agents.tool.tools.search_tool import LoggedTavilySearch, get_web_search_tool
 from src.infrastructure.config.configuration import Configuration
 from src.infrastructure.config.search_tools_config import SEARCH_ENGINE, SearchEngine
 
@@ -87,7 +87,27 @@ def background_investigation_node(
     if SEARCH_ENGINE == SearchEngine.TAVILY.value:
         searched_content = LoggedTavilySearch(
             max_results=configurable.max_search_result,
+        ).invoke(query)
+        if isinstance(searched_content, list):
+            background_investigation_results = [
+                f"## {elem['title']}\n\n{elem['content']}" for elem in searched_content
+            ]
+            return {
+                "background_investigation_results": "\n\n".join(background_investigation_results)
+            }
+        else:
+            logger.error(
+                f"Tavily search for {searched_content} is invalid"
+            )
+    else:
+        background_investigation_results = get_web_search_tool(
+            configurable.max_search_result
+        ).invoke(query)
+    return {
+        "background_investigation_results": json.dumps(
+            background_investigation_results, ensure_ascii=False
         )
+    }
 
 
     return None

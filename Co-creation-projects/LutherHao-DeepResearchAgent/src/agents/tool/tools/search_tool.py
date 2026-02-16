@@ -2,6 +2,7 @@ import logging
 from typing import Type, Any, TypeVar
 
 from src.agents.tool.tools.impl.tavily_search_tool import MultiTavilySearch
+from src.infrastructure.config.search_tools_config import SEARCH_ENGINE, SearchEngine
 
 logger = logging.getLogger(__name__)
 
@@ -41,3 +42,18 @@ LoggedTavilySearch = create_logged_tool(MultiTavilySearch)
 # LoggedDuckDuckGoSearch = create_logged_tool(DuckDuckGoSearch)
 # LoggedBraveSearch = create_logged_tool(BraveSearch)
 # LoggedArxivSearch = create_logged_tool(ArxivQueryRun)
+
+
+def get_web_search_tool(max_search_results: int):
+    if SEARCH_ENGINE == SearchEngine.TAVILY.value:
+        return LoggedTavilySearch(
+            name="web_search",
+            max_results=max_search_results,
+            include_raw_content=True,
+            include_images=True,
+            include_image_description=True,
+        )
+    # elif SEARCH_ENGINE == SearchEngine.DUCKDUCKGO.value:
+    #     return LoggedDuckDuckGoSearch(name="web_search", max_results=max_search_results)
+    # elif SEARCH_ENGINE == SearchEngine.BRAVE_SEARCH.value:
+    #     return LoggedArxivSearch(name="web_search", max_results=max_search_results)
