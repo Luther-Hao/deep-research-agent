@@ -7,7 +7,7 @@ from src.agents.graph.nodes.model.types import State
 
 from src.agents.graph.nodes.nodes import (
     coordinator_node,
-    background_investigation_node
+    background_investigation_node, planner_node, human_feedback_node, research_team_node, researcher_node, coder_node
 )
 
 def _build_base_graph():
@@ -38,7 +38,6 @@ def _build_base_graph():
 
     builder.add_node("researcher",researcher_node)
     builder.add_node("coder",coder_node)
-    builder.add_node("excel_analyser",excel_anaylser_node)
     builder.add_node("reporter",reporter_node)
 
     # add edge

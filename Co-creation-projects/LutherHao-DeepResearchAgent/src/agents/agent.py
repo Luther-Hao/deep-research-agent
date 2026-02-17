@@ -1,5 +1,10 @@
 import logging
 
+from langgraph.prebuilt import create_react_agent
+
+from src.agents.llms.llm_manager import llm_manager
+from src.agents.prompt.template import apply_prompt_template
+
 logger = logging.getLogger(__name__)
 
 
@@ -57,4 +62,13 @@ async def run_async(user_input: str,
     last_message_cnt = 0
     final_state = None
 
+
+def create_agent_dynamic(agent_name: str, agent_type:str, tools:list, prompt_template:str,model_name:str):
+    model = llm_manager.get_model_by_name(model_name)
+    return create_react_agent(
+        name=agent_name,
+        model=model,
+        tools=tools,
+        prompt=lambda state: apply_prompt_template(prompt_template, state),
+    )
 
