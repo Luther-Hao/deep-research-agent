@@ -2,12 +2,14 @@ import logging
 
 from langgraph.prebuilt import create_react_agent
 
+from src.agents.graph.builder import build_graph
 from src.agents.llms.llm_manager import llm_manager
 from src.agents.prompt.template import apply_prompt_template
 
 logger = logging.getLogger(__name__)
 
 
+graph = build_graph()
 
 async def run_async(user_input: str,
                     max_plan_iterations: int = 1,
@@ -61,6 +63,29 @@ async def run_async(user_input: str,
     }
     last_message_cnt = 0
     final_state = None
+    async for s in graph.astream(
+        input=initial_state,
+        config=config,
+        stream_mode="values"
+    ):
+        try:
+            final_state = s
+            if isinstance(final_state, dict) and "messages" in s:
+                if len(s["messages"]) <= last_message_cnt:
+                    continue
+                last_message_cnt = len(s["messages"])
+                message = s["messages"][-1]
+                if isinstance(message, tuple):
+                    print(message)
+                else:
+                    message.pretty_print()
+            else:
+                print(f"Output: {s}")
+        except Exception as e:
+            logger.error(f"Error processing stream output: {e}")
+            print(f"Error processing stream output: {str(e)}")
+
+    logger.info(f"Agent working end with user input: {user_input}")
 
 
 def create_agent_dynamic(agent_name: str, agent_type:str, tools:list, prompt_template:str,model_name:str):

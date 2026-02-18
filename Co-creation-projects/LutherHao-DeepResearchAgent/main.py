@@ -11,6 +11,7 @@ import asyncio
 from InquirerPy import inquirer
 
 from src.agents.agent import run_async
+from src.infrastructure.config.questions import BUILT_IN_QUESTIONS
 
 
 def ask(
@@ -45,7 +46,7 @@ def main(
     max_clarification_rounds=None,
 ):
     # 初始化问题
-    questions = BUILT_IN_QUESTIONS_ZH_CN
+    questions = BUILT_IN_QUESTIONS
 
     ask_own_option = "[自定义问题]"
 
