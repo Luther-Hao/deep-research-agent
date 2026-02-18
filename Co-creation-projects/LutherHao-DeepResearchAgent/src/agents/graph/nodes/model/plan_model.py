@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Optional, List
 
 from pydantic import BaseModel, Field
@@ -7,10 +8,23 @@ class Step:
     need_search: Optional[bool]
     title: str
     description: str
+    step_type: str
     execution_res: Optional[str] = Field(
         default=None,
         description="The step execution result"
     )
+
+class StepType(str,Enum):
+    RESEARCH = "research"
+    PROCESSING = "processing"
+    REPORT = "report"
+
+STEP_TYPE_TO_NODE_MAP = {
+    StepType.RESEARCH :"researcher",
+    StepType.PROCESSING:"coder",
+    StepType.REPORT:"reporter",
+}
+
 
 
 class Plan(BaseModel):

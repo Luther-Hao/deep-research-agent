@@ -3,11 +3,13 @@ from langgraph.constants import START, END
 from langgraph.graph import StateGraph
 from langgraph.types import Checkpointer
 
+from src.agents.graph.nodes.model.plan_model import StepType, STEP_TYPE_TO_NODE_MAP
 from src.agents.graph.nodes.model.types import State
 
 from src.agents.graph.nodes.nodes import (
     coordinator_node,
-    background_investigation_node, planner_node, human_feedback_node, research_team_node, researcher_node, coder_node
+    background_investigation_node, planner_node, human_feedback_node, research_team_node, researcher_node, coder_node,
+    reporter_node
 )
 
 def _build_base_graph():
@@ -31,7 +33,6 @@ def _build_base_graph():
     builder.add_node("background_investigation",background_investigation_node)
     builder.add_node("planner",planner_node)
     builder.add_node("human_feedback",human_feedback_node)
-    builder.add_node("dynamic_assistant", dynamic_assistant_node)
 
 
     builder.add_node("research_team",research_team_node)
@@ -46,7 +47,6 @@ def _build_base_graph():
 
     builder.add_edge("researcher", "research_team")
     builder.add_edge("coder", "research_team")
-    builder.add_edge("excel_analyser", "research_team")
 
     builder.add_edge("dynamic_assistant", "research_team")
 
@@ -70,6 +70,43 @@ def build_graph_with_checkpointer(checkpoint : Checkpointer):
     main_builder.add_edge("base_graph", END)
 
     return main_builder.compile(checkpointer=checkpoint)
+
+
+def get_next_research_step_node(state: State) -> str:
+    """
+    获取当前计划的研究步骤类型，并路由到对应的执行节点
+
+    研究步骤类型如下：
+    - research:研究员节点
+    - processin: 编码员节点
+    :param state:
+    :return: 下一个执行节点的名称或者 REPORTER
+    """
+
+    current_plan = state.get("current_plan")
+
+    if not current_plan or not current_plan.steps:
+        return "planner"
+
+    current_step = current_plan.get_next_unexecuted_research_team_step()
+
+    if not current_step:
+        return "reporter"
+
+    step_type = current_step.step_type
+
+    try:
+        step_type_enum = StepType(step_type)
+        if step_type_enum in STEP_TYPE_TO_NODE_MAP:
+            return STEP_TYPE_TO_NODE_MAP[step_type_enum].value
+    except ValueError:
+        pass
+
+    return "reporter"
+
+
+
+
 
 
 def build_graph():
