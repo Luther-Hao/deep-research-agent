@@ -48,7 +48,6 @@ def _build_base_graph():
     builder.add_edge("researcher", "research_team")
     builder.add_edge("coder", "research_team")
 
-    builder.add_edge("dynamic_assistant", "research_team")
 
     builder.add_conditional_edges(
         "research_team",
