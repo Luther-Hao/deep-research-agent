@@ -28,6 +28,7 @@ STEP_TYPE_TO_NODE_MAP = {
 
 
 class Plan(BaseModel):
+    model_config = {"arbitrary_types_allowed": True}
     has_enough_context: Optional[bool]
     thought: str
     title: str

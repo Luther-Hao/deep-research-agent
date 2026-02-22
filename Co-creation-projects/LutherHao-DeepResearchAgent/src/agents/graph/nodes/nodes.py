@@ -10,7 +10,6 @@ from langchain_core.tools import tool
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.types import Command, interrupt
 
-from src.agents.agent import create_agent_dynamic
 from src.agents.graph.nodes.model.plan_model import Plan
 from src.agents.graph.nodes.model.types import State
 from src.agents.llms.llm_manager import llm_manager
@@ -47,6 +46,7 @@ def _get_available_tools_info_for_prompt(configurable):
 
 @tool
 def handoff_to_planner():
+    """直接通向计划者，无需做任何处理"""
     return
 
 
@@ -438,7 +438,7 @@ async def _execute_research_team_step_with_tools(
                     for tool_name in normalized_tools:
                         enabled_tools[tool_name] = server_name
 
-
+    from src.agents.agent import create_agent_dynamic
     if mcp_servers:
         client = MultiServerMCPClient(mcp_servers)
         loaded_tools = tools[:]
@@ -448,6 +448,8 @@ async def _execute_research_team_step_with_tools(
                     f"Powered by '{enabled_tools[tool.name]}'.\n{tool.description}"
                 )
                 loaded_tools.append(tool)
+
+
         agent = create_agent_dynamic(agent_type, agent_type, loaded_tools, agent_type, model)
         return await _run_research_team_step_with_agent(state, agent, agent_type)
     else:
