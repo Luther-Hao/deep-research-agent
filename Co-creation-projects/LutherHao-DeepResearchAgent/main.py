@@ -9,11 +9,13 @@ import argparse
 import asyncio
 
 from InquirerPy import inquirer
+from langsmith import traceable
 
 from src.agents.agent import run_async
 from src.infrastructure.config.questions import BUILT_IN_QUESTIONS
 
 
+@traceable
 def ask(
     question,
     debug=False,
@@ -36,7 +38,7 @@ def ask(
         )
     )
 
-
+@traceable
 def main(
     debug=False,
     max_plan_iterations=1,

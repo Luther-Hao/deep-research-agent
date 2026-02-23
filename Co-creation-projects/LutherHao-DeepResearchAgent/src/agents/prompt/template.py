@@ -51,6 +51,6 @@ def apply_prompt_template(
     try:
         template = env.get_template(f"{prompt_name}.md")
         system_prompt = template.render(**state_vars)
-        return [{"role":"system", "content": system_prompt}] + state["message"]
+        return [{"role":"system", "content": system_prompt}] + state["messages"]
     except Exception as e:
         raise ValueError(f"Error loading template {prompt_name} : {e}")

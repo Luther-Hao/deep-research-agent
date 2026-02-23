@@ -4,7 +4,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 
 
-class Step:
+class Step(BaseModel):
     need_search: Optional[bool]
     title: str
     description: str
