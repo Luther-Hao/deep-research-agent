@@ -1,4 +1,5 @@
 import configparser
+from functools import lru_cache
 from typing import Dict, Any, Union, Optional
 
 from langchain_openai.chat_models.base import BaseChatOpenAI
@@ -43,6 +44,7 @@ class LLMManager:
         logging.debug(f"最终模型配置：{total_config}")
         return BaseChatOpenAI(**total_config)
 
+    @lru_cache(maxsize=1)
     def get_model_by_name(self, model_name: str, **kwargs) -> BaseChatOpenAI:
         try:
             model_enum = ModelName.from_name(model_name)

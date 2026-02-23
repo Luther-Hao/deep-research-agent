@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
@@ -107,7 +109,7 @@ def get_next_research_step_node(state: State) -> str:
 
 
 
-
+@lru_cache(maxsize=1)
 def build_graph():
     memory = MemorySaver()
     return build_graph_with_checkpointer(memory)

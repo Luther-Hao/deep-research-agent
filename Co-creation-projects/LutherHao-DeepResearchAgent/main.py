@@ -7,6 +7,7 @@ Entry point script.
 
 import argparse
 import asyncio
+import logging
 
 from InquirerPy import inquirer
 from langsmith import traceable
@@ -14,6 +15,10 @@ from langsmith import traceable
 from src.agents.agent import run_async
 from src.infrastructure.config.questions import BUILT_IN_QUESTIONS
 
+logging.basicConfig(
+    level=logging.INFO,
+    handlers=[logging.StreamHandler()]
+)
 
 @traceable
 def ask(

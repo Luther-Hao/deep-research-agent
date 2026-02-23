@@ -187,7 +187,7 @@ def planner_node(
                 "message":[AIMessage(content=full_response, name="planner")],
                 "current_plan":new_plan
             },
-            goto="human_feedback"
+            goto="research_team"
         )
 
 
@@ -195,6 +195,7 @@ def human_feedback_node(
         state,
         config: RunnableConfig
 ) -> Command[Literal["planner", "research_team","__end__"]]:
+    logger.info("human_feedback_node is running")
     raw_plan = state.get("current_plan","")
     current_plan = raw_plan
 
@@ -205,7 +206,10 @@ def human_feedback_node(
 
     auto_accepted_plan = state.get("auto_accepted_plan",False)
     if not auto_accepted_plan:
-        feedback = interrupt("Please Review the Plan")
+        feedback = interrupt("Please Review the Plan:\n"
+                   "- Enter [ACCEPTED] to approve the plan\n"
+                   "- Enter [EDIT_PLAN] + your new plan to modify\n"
+                   "- Empty input will return to planner")
 
         if not feedback:
             logger.warning(f"Received empty or None feedback: {feedback}. Return to Planner")
