@@ -4,6 +4,7 @@ import os.path
 class ProjectRootFinder:
     """项目根目录查找器"""
     DEFAULT_MAKERS = [
+        "application.yaml",
         "main.ipynb",
     ]
 

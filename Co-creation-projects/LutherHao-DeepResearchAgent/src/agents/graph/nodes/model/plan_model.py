@@ -39,10 +39,10 @@ class Plan(BaseModel):
 
     def get_research_steps(self) -> List[Step]:
         research_type = {
-            "research","processing","excel_analysing"
+            "research", "processing", "excel_analysing"
         }
 
-        return [step for step in self.steps if step in research_type]
+        return [step for step in self.steps if step.step_type in research_type]
 
 
     def get_next_unexecuted_research_team_step(self) -> Optional[Step]:

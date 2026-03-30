@@ -9,7 +9,10 @@ MCP_SERVER_CONFIG_FIELDS={
     "need_auth"
 }
 
-def extract_mcp_server_config(server_config : Dict[str, Any], additional_fields: Set[str]) -> Dict[str, Any]:
+def extract_mcp_server_config(
+    server_config: Dict[str, Any],
+    additional_fields: Set[str] = None,
+) -> Dict[str, Any]:
     """合并MCP Server的关键配置信息"""
     all_fields = MCP_SERVER_CONFIG_FIELDS
     if additional_fields:

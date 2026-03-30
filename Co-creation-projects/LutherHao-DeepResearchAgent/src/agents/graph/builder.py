@@ -99,7 +99,7 @@ def get_next_research_step_node(state: State) -> str:
     try:
         step_type_enum = StepType(step_type)
         if step_type_enum in STEP_TYPE_TO_NODE_MAP:
-            return STEP_TYPE_TO_NODE_MAP[step_type_enum].value
+            return STEP_TYPE_TO_NODE_MAP[step_type_enum]
     except ValueError:
         pass
 

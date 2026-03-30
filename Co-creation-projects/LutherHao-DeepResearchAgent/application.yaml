@@ -1,6 +1,6 @@
 GLOBAL_LLM_API_KEY:
   base_url: "https://api.deepseek.com/v1"
-  api_key: ""
+  api_key: "sk-721e61749ffb47068b73466d4f80e735"
 
 SEARCH_ENGINE:
   api:"tavily_search"

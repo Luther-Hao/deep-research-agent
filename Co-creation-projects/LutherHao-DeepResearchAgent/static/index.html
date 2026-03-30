@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep Research Agent</title>
+  <link rel="stylesheet" href="/style.css" />
+  <!-- marked.js for markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔍 Deep Research Agent</h1>
+      <p class="subtitle">由 LangGraph + DeepSeek 驱动的智能深度研究助手</p>
+    </header>
+
+    <main>
+      <!-- Query form -->
+      <section class="query-section">
+        <form id="research-form">
+          <div class="input-group">
+            <textarea
+              id="query-input"
+              placeholder="输入您的研究问题，例如：分析2025年全球AI大模型市场竞争格局..."
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="options-row">
+            <label>
+              <span>最大计划轮数</span>
+              <input type="number" id="max-plan-iterations" value="1" min="1" max="5" />
+            </label>
+            <label>
+              <span>最大步骤数</span>
+              <input type="number" id="max-step-num" value="3" min="1" max="10" />
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="enable-background" checked />
+              <span>启用背景调研</span>
+            </label>
+          </div>
+          <button type="submit" id="submit-btn">
+            <span id="btn-text">开始研究</span>
+            <span id="btn-spinner" class="spinner hidden"></span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Progress / stream area -->
+      <section id="progress-section" class="hidden">
+        <div class="section-header">
+          <h2>研究进度</h2>
+          <button id="stop-btn" class="btn-secondary">停止</button>
+        </div>
+        <div id="messages-container"></div>
+      </section>
+
+      <!-- Final report -->
+      <section id="report-section" class="hidden">
+        <div class="section-header">
+          <h2>研究报告</h2>
+          <button id="copy-btn" class="btn-secondary">复制报告</button>
+        </div>
+        <div id="report-content" class="report-body"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -32,15 +32,15 @@ def _get_available_tools_info_for_prompt(configurable):
     if configurable.mcp_settings and configurable.mcp_settings.get("servers"):
         tools_info.append("\nMCP tools:")
         mcp_tools_info = {}
-        for server_name, server_config in configurable.mcp_settings.get("servers",{}).items():
+        for server_name, server_config in configurable.mcp_settings.get("servers", {}).items():
             enable_tools = server_config.get("enable_tools", [])
             if enable_tools and isinstance(enable_tools[0], dict):
                 mcp_tools_info[server_name] = enable_tools
             else:
                 mcp_tools_info[server_name] = [{"name": tool_name} for tool_name in enable_tools]
 
-    if mcp_tools_info:
-        tools_info.append(json.dumps(mcp_tools_info, ensure_ascii=False, indent=2))
+        if mcp_tools_info:
+            tools_info.append(json.dumps(mcp_tools_info, ensure_ascii=False, indent=2))
 
     return "\n".join(tools_info)
 
@@ -385,7 +385,7 @@ async def _run_research_team_step_with_agent(
             config={"recursion_limit": recursion_limit},
         )
 
-        response_content = result["message"][-1].content
+        response_content = result["messages"][-1].content
         logger.info(f"Step '{current_step.title}' completed successfully")
 
         return Command(
@@ -436,7 +436,7 @@ async def _execute_research_team_step_with_tools(
                 mcp_servers[server_name] = extract_mcp_server_config(server_config)
 
                 # 处理工具列表, 使用统一的标准化函数
-                enabled_tools_list = server_config["enabled_tools"]
+                enabled_tools_list = server_config.get("enabled_tools") or server_config.get("enable_tools", [])
                 if enabled_tools_list:
                     normalized_tools = normalize_enabled_tools(enabled_tools_list)
                     for tool_name in normalized_tools:
@@ -493,26 +493,33 @@ async def coder_node(
     )
 
 
-def reporter_node(state: State,config: RunnableConfig):
+def reporter_node(state: State, config: RunnableConfig):
     logger.info("reporter_node is running")
+    configurable = Configuration.from_runnable_config(config)
     current_plan = state.get("current_plan")
-    messages = state.get("messages",[])
-    messages.append(
-        HumanMessage(
-            f"# Research Requirements\n\n## Task\n\n{current_plan.title}\n\n## Description\n\n{current_plan.thought}",
-        )
-    )
-    input = {
-        "messages":messages
-    }
-    invoke_message = apply_prompt_template("reporter",input)
-    observations = state.get("observations",[])
+    messages = list(state.get("messages", []))
 
-    _add_system_prompts(
-        invoke_message,
-        "reporter",
-        observations=observations
-    )
+    if current_plan:
+        messages.append(
+            HumanMessage(
+                content=f"# Research Requirements\n\n## Task\n\n{current_plan.title}\n\n## Description\n\n{current_plan.thought}",
+            )
+        )
+
+    invoke_input = {"messages": messages}
+    invoke_message = apply_prompt_template("reporter", invoke_input)
+    observations = state.get("observations", [])
+
+    _add_system_prompts(invoke_message, "reporter", observations=observations)
+
+    model = llm_manager.get_model_by_name(configurable.model)
+    response = model.invoke(invoke_message)
+
+    logger.info("reporter_node done")
+    return {
+        "final_report": response.content,
+        "messages": [AIMessage(content=response.content, name="reporter")],
+    }
 
 
 
